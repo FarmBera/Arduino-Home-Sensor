@@ -3,7 +3,7 @@
 
 // File myFile;
 
-// void sd_setup() {
+// void setup() {
 //     Serial.begin(9600);
 //     Serial.print("Initializing SD card...");
 
@@ -17,14 +17,17 @@
 //     myFile = SD.open("test.txt", FILE_WRITE); // 두 번째 인자가 있으면 쓰기모드입니다.
 
 //     if (myFile) { // 파일이 정상적으로 열리면 파일에 문자를 작성(추가)합니다.
+//         String one = "1One";
+//         String two = "2Two";
 //         Serial.print("Writing to test.txt...");
 //         myFile.println("Hello, mechasolution!");
+//         myFile.println(one + " middle " + two);
 //         myFile.close(); // 파일을 닫습니다.
 //         Serial.println("done.");
 //     }
 //     else {
 //         // 파일이 열리지 않으면 에러를 출력합니다.
-//         Serial.println("error opening test.txt");
+//         Serial.println("ERROR with Opening test.txt");
 //     }
 
 //     // 파일을 읽기 위해 다시 엽니다. 두 번째 인자가 없으면 읽기모드입니다.
@@ -45,4 +48,4 @@
 //     }
 // }
 
-// void sd_loop() {}
+// void loop() {}

@@ -1,7 +1,11 @@
+.vscode
+Analyze/*.png
 data
 deprecated
+header
 img
 
+logfile.txt
 
 
 
