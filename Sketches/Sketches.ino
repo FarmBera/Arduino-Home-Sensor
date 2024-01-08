@@ -1,4 +1,4 @@
-#include <LiquidCrystal.h> // Non-I2C LCD Library
+// #include <LiquidCrystal.h> // Non-I2C LCD Library
 #include <LiquidCrystal_I2C.h> // I2C LCD Library
 #include <DS1302.h> // RTC (Real Time Clock) Library
 #include <DHT.h> // Temp/Hum Library
@@ -8,6 +8,7 @@
 
 String FILE_PATH = "roomtemp.txt";
 File myFile;
+short logState = 0;
 
 /** Enable Temp/Hum Sensor */
 #define DHTPIN A3
@@ -19,8 +20,8 @@ DHT dht(DHTPIN, DHTTYPE);
 DS1302 myrtc(9, 8, 7); // 
 
 /** Enable Non-I2C LCD, I2C-LCD */
-LiquidCrystal_I2C lcdi2c(0x27, 16, 2);
-LiquidCrystal lcd(A1,A2, 5,4,3,2); 
+LiquidCrystal_I2C lcd(0x27, 16, 2);
+// LiquidCrystal lcd(A1,A2, 5,4,3,2); 
 
 /** Fine Dust Variables */
 #define no_dust 0.6
@@ -52,58 +53,33 @@ void ClockRequest() {
 
 
 /** Print clock at LCD */
-void DisplayClock(short pos=0, char TypeLCD='d') {
+void DisplayClock(short pos=0) {
     String Temp_TIME = TIME.substring(0, 5); // .toInt()
 
-    if (TypeLCD == 'd') {
-        lcd.setCursor(0, pos);
-        lcd.print(Temp_TIME + " " + DATE);
-        // lcd.print(Temp_TIME);
-        // lcd.print(" ");
-        // lcd.print(DATE);
-    }
-    else if (TypeLCD == 'i') {
-        lcdi2c.setCursor(0, pos);
-        lcdi2c.print(Temp_TIME + " " + DATE);
-        // lcdi2c.print(Temp_TIME);
-        // lcdi2c.print(" ");
-        // lcdi2c.print(DATE);
-    }
+    lcd.setCursor(0, pos);
+    lcd.print(Temp_TIME + " " + DATE);
+    // lcd.print(Temp_TIME);
+    // lcd.print(" ");
+    // lcd.print(DATE);
 }
 
 
-void DisplayClockSecond(short pos=0, char TypeLCD='d') {
+void DisplayClockSecond(short pos=0) {
     String Temp_TIME = TIME.substring(0, 5); // .toInt()
 
-    if (TypeLCD == 'd') {
-        lcd.setCursor(0, pos);
-        lcd.print(TIME);
-        lcd.print(" ");
-        lcd.print(DATE);
-    }
-    else if (TypeLCD == 'i') {
-        lcdi2c.setCursor(0, pos);
-        lcdi2c.print(TIME);
-        lcdi2c.print(" ");
-        lcdi2c.print(DATE);
-    }
+    lcd.setCursor(0, pos);
+    lcd.print(TIME);
+    lcd.print(" ");
+    lcd.print(DATE);
 }
 
 
 /** Print Full-Screen clock */
-void DisplayClockFull(char TypeLCD = 'd') {
-    if (TypeLCD == 'd') {
-        lcd.setCursor(4, 0);
-        lcd.print(TIME);
-        lcd.setCursor(3, 1);
-        lcd.print(DATE);
-    }
-    else if (TypeLCD == 'i') {
-        lcdi2c.setCursor(4, 0);
-        lcdi2c.print(TIME);
-        lcdi2c.setCursor(3, 1);
-        lcdi2c.print(DATE);
-    }
+void DisplayClockFull() {
+    lcd.setCursor(4, 0);
+    lcd.print(TIME);
+    lcd.setCursor(3, 1);
+    lcd.print(DATE);
 }
 
 
@@ -126,50 +102,31 @@ String GetClockMiliTime() {
 
 
 /** Display Temp/Hum Level */
-void DisplayTemp(char TypeLCD='d') {
+void DisplayTemp(short pos = 0) {
     // Load Sensor Value
     dht_temp = dht.readTemperature();
     dht_hum = dht.readHumidity();
 
-    if (TypeLCD == 'd') {
-        // Print Temperature
-        lcd.setCursor(0, 0);
-        lcd.print("T: ");
-        if (dht_temp < 10) {
-            lcd.print(" ");
-            lcd.setCursor(3, 0);
-        }
-        lcd.print(dht_temp);
-        lcd.print("'C   ");
-
-        // Proint Humidity
-        lcd.setCursor(9, 0);
-        lcd.print("H: ");
-        lcd.print(dht_hum);
-        lcd.print("% ");
+    // Print Temperature
+    lcd.setCursor(0, pos);
+    lcd.print("T: ");
+    if (dht_temp < 10) {
+        lcd.print(" ");
+        lcd.setCursor(3, pos);
     }
-    else if (TypeLCD == 'i') {
-        // Print Temperature
-        lcdi2c.setCursor(0, 0);
-        lcdi2c.print("T: ");
-        if (dht_temp < 10) {
-            lcdi2c.print(" ");
-            lcdi2c.setCursor(3, 0);
-        }
-        lcdi2c.print(dht_temp);
-        lcdi2c.print("'C  ");
+    lcd.print(dht_temp);
+    lcd.print("'C  ");
 
-        // Proint Humidity
-        lcdi2c.setCursor(9, 0);
-        lcdi2c.print("H: ");
-        lcdi2c.print(dht_hum);
-        lcdi2c.print("% ");
-    }
+    // Proint Humidity
+    lcd.setCursor(9, pos);
+    lcd.print("H: ");
+    lcd.print(dht_hum);
+    lcd.print("% ");
 }
 
 
 /** Display Fine-Dust Level */
-void DisplayDust(char TypeLCD='d') {
+void DisplayDust(short pos = 1) {
     // short init_pos = 0;
     digitalWrite(V_LED, LOW);
     delayMicroseconds(280);
@@ -186,14 +143,8 @@ void DisplayDust(char TypeLCD='d') {
     dustDensity = (Voltage - no_dust) / 0.005; // NEW
 
     // LCD에 출력하기
-    if (TypeLCD == 'd') {
-        lcd.setCursor(0, 1);
-        lcd.print(Voltage);
-    }
-    else if (TypeLCD == 'i') {
-        lcdi2c.setCursor(0, 1);
-        lcdi2c.print(Voltage);
-    }
+    lcd.setCursor(0, pos);
+    lcd.print(Voltage);
 
 
     /** 미세먼지 수치 별 시각화
@@ -228,30 +179,26 @@ void DisplayDust(char TypeLCD='d') {
         lvl = "ERROR";
 
 
-    for (short m=5; m<12; m++) {
-        if (TypeLCD == 'd') {
-            lcd.setCursor(m, 1);
-            lcd.print(" ");
-        }
-        else if (TypeLCD == 'i') {
-            lcdi2c.setCursor(m, 1);
-            lcdi2c.print(" ");
-        }
+    for (short m=7; m<12; m++) {
+        lcd.setCursor(m, pos);
+        lcd.print(" ");
     }
 
 
-    if (TypeLCD == 'd') {
-        lcd.setCursor(5, 1);
-        lcd.print(lvl);
-        lcd.setCursor(12, 1); // 미세먼지 값
-        lcd.print(dustDensity);
-    }
-    else if (TypeLCD == 'i') {
-        lcdi2c.setCursor(5, 1);
-        lcdi2c.print(lvl);
-        lcdi2c.setCursor(12, 1); // 미세먼지 값
-        lcdi2c.print(dustDensity);
-    }
+    lcd.setCursor(4, pos);
+    if (logState == 1) lcd.print("O");
+    else if (logState == 0) lcd.print("X");
+    else lcd.print("E");
+
+    lcd.setCursor(5, pos);
+    // Serial.println(TIME.substring(3, 5));
+    lcd.print(TIME.substring(3, 5));
+
+
+    lcd.setCursor(7, pos);
+    lcd.print(lvl);
+    lcd.setCursor(12, pos); // 미세먼지 값
+    lcd.print(dustDensity);
 }
 
 
@@ -270,7 +217,7 @@ void SDCardLogging(String CustomMsg) {
         lcd.clear();
         lcd.setCursor(0, 0);
         lcd.print("Writed CusMsg at");
-        DisplayClock(1, 'd');
+        DisplayClock(1);
     }
     else { // File not opened
         Serial.println("Error with Opening File >> " + FILE_PATH);
@@ -278,7 +225,7 @@ void SDCardLogging(String CustomMsg) {
         lcd.clear();
         lcd.setCursor(0, 0);
         lcd.print("Writing Msg Failed");
-        DisplayClock(1, 'd');
+        DisplayClock(1);
     }
 }
 
@@ -308,18 +255,20 @@ void SDCardLogging() {
         Serial.print(".");
         lcd.print("Writing Done at");
         Serial.print(".");
-        DisplayClock(1, 'd');
+        DisplayClock(1);
         Serial.print(".");
 
+        logState = 1;
         Serial.println("Done");
     }
     else { // When file not opened
+        logState = 0;
         Serial.println("Error with Opening File >> " + FILE_PATH);
 
         lcd.clear();
         lcd.setCursor(0, 0);
         lcd.print("Writing Failed");
-        DisplayClock(1, 'd');
+        DisplayClock(1);
     }
 }
 
@@ -327,11 +276,11 @@ void SDCardLogging() {
 void setup() {
     Serial.begin(9600);
 
-    lcd.begin(16, 2);
+    // lcd.begin(16, 2);
 
-    lcdi2c.init();
-    lcdi2c.clear();
-    lcdi2c.backlight();
+    lcd.init();
+    lcd.backlight();
+    // lcd.clear();
 
     /** Dust-Module Pin Setup */
     pinMode(V_LED, OUTPUT);
@@ -348,16 +297,12 @@ void setup() {
 
 
     /** Start SD Card Module Initialization */
+    logState = 0;
     Serial.print("Initializing SD card...");
     lcd.setCursor(0, 0);
     lcd.print("Initializing");
     lcd.setCursor(0, 1);
     lcd.print("SD card...");
-
-    lcdi2c.setCursor(0, 0);
-    lcdi2c.print("Initializing");
-    lcdi2c.setCursor(0, 1);
-    lcdi2c.print("SD card...");
 
     if (!SD.begin(4)) { // Initialize SD Card Module
         Serial.println("Initialization Failed!");
@@ -368,14 +313,12 @@ void setup() {
         lcd.setCursor(0, 1);
         lcd.print("Failed!");
 
-        lcdi2c.clear();
-        lcdi2c.setCursor(0, 0);
-        lcdi2c.print("Initialization");
-        lcdi2c.setCursor(0, 1);
-        lcdi2c.print("Failed!");
+        logState = 0;
+
         while (1);
     }
     else { // When Initialization Success, 
+        logState = 1;
         Serial.println("Initialization Done.");
 
         lcd.clear();
@@ -383,12 +326,6 @@ void setup() {
         lcd.print("Initialization");
         lcd.setCursor(0, 1);
         lcd.print("SD Card DONE !");
-
-        lcdi2c.clear();
-        lcdi2c.setCursor(0, 0);
-        lcdi2c.print("Initialization");
-        lcdi2c.setCursor(0, 1);
-        lcdi2c.print("SD Card DONE !");
         
         init_res_sd = 1;
 
@@ -397,12 +334,11 @@ void setup() {
 
     // Display log start message
     if (init_res_sd == 1) {
+        logState = 1;
         lcd.clear();
-        lcdi2c.clear();
         lcd.print("Logging Start!");
-        lcdi2c.print("Logging Start!");
-        DisplayClock(1, 'd');
-        DisplayClock(1, 'i');
+        DisplayClock(1);
+        DisplayClock(1);
     }
     delay(1 * 1000);
 
@@ -432,11 +368,13 @@ void setup() {
 
         init_res_sd = 1;
 
+        logState = 1;
         lcd.setCursor(0, 0);
         lcd.print("LogfileInit Done");
-        DisplayClock(1, 'd');
+        DisplayClock(1);
     }
     else { // When File not opened normally
+        logState = 0;
         Serial.print("ERROR with Opening >> ");
         Serial.println(FILE_PATH);
         lcd.clear();
@@ -444,15 +382,11 @@ void setup() {
         lcd.print("ERROR with");
         lcd.print("Opening");
         lcd.print(FILE_PATH);
-        lcdi2c.clear();
-        lcdi2c.setCursor(0, 0);
-        lcdi2c.print("ERROR with");
-        lcdi2c.print("Opening");
-        lcdi2c.print(FILE_PATH);
 
         init_res_sd = 0;
     }
-    lcdi2c.clear();
+    delay(1 * 1000);
+    lcd.clear();
 }
 
 
@@ -476,15 +410,15 @@ void loop() {
         (0 <= sec && sec <= 2) ||
         (5 <= sec && sec <= 7)
     ) {
-        DisplayTemp('i');
+        DisplayTemp();
     }
     else if (
-        (4 <= sec && sec <= 5) ||
+        (3 <= sec && sec <= 4) ||
         (8 <= sec && sec <= 9)
     ) {
-        DisplayClockSecond(0, 'i');
+        DisplayClockSecond();
     }
-    DisplayDust('i');
+    DisplayDust();
 
     delay(900);
 }

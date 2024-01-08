@@ -55,11 +55,20 @@ void ClockRequest() {
 void DisplayClock(short pos=0, char TypeLCD='d') {
     String Temp_TIME = TIME.substring(0, 5); // .toInt()
 
-    lcd.setCursor(0, pos);
-    lcd.print(Temp_TIME + " " + DATE);
-    // lcd.print(Temp_TIME);
-    // lcd.print(" ");
-    // lcd.print(DATE);
+    if (TypeLCD == 'd') {
+        lcd.setCursor(0, pos);
+        lcd.print(Temp_TIME + " " + DATE);
+        // lcd.print(Temp_TIME);
+        // lcd.print(" ");
+        // lcd.print(DATE);
+    }
+    else if (TypeLCD == 'i') {
+        lcdi2c.setCursor(0, pos);
+        lcdi2c.print(Temp_TIME + " " + DATE);
+        // lcdi2c.print(Temp_TIME);
+        // lcdi2c.print(" ");
+        // lcdi2c.print(DATE);
+    }
 }
 
 
