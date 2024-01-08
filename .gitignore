@@ -3,8 +3,8 @@ Analyze/*.png
 data
 deprecated
 header
-img
-
+img_result
+img_temp
 logfile.txt
 
 

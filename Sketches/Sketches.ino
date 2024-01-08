@@ -57,15 +57,17 @@ void DisplayClock(short pos=0, char TypeLCD='d') {
 
     if (TypeLCD == 'd') {
         lcd.setCursor(0, pos);
-        lcd.print(Temp_TIME);
-        lcd.print(" ");
-        lcd.print(DATE);
+        lcd.print(Temp_TIME + " " + DATE);
+        // lcd.print(Temp_TIME);
+        // lcd.print(" ");
+        // lcd.print(DATE);
     }
     else if (TypeLCD == 'i') {
         lcdi2c.setCursor(0, pos);
-        lcdi2c.print(Temp_TIME);
-        lcdi2c.print(" ");
-        lcdi2c.print(DATE);
+        lcdi2c.print(Temp_TIME + " " + DATE);
+        // lcdi2c.print(Temp_TIME);
+        // lcdi2c.print(" ");
+        // lcdi2c.print(DATE);
     }
 }
 
@@ -86,6 +88,7 @@ void DisplayClockSecond(short pos=0, char TypeLCD='d') {
         lcdi2c.print(DATE);
     }
 }
+
 
 /** Print Full-Screen clock */
 void DisplayClockFull(char TypeLCD = 'd') {
@@ -339,8 +342,8 @@ void setup() {
     // myrtc.halt(false); // 동작 모드로 설정
     // myrtc.writeProtect(false); // 시간 변경을 가능하게 설정
     // myrtc.setDOW(MONDAY); // 요일 설정
-    // myrtc.setTime(15, 50, 0); // 시간 설정 ( 시간, 분, 초 )
-    // myrtc.setDate(28, 12, 2023); // 날짜 설정 ( 일, 월, 년도 )
+    // myrtc.setTime(11, 22, 0); // 시간 설정 ( 시간, 분, 초 )
+    // myrtc.setDate(6, 1, 2024); // 날짜 설정 ( 일, 월, 년도 )
     // myrtc.writeProtect(true); // 시간 변경을 가능하게 설정
 
 
@@ -389,7 +392,7 @@ void setup() {
         
         init_res_sd = 1;
 
-        delay(2 * 1000);
+        delay(1 * 1000);
     }
 
     // Display log start message
@@ -401,7 +404,7 @@ void setup() {
         DisplayClock(1, 'd');
         DisplayClock(1, 'i');
     }
-    delay(2 * 1000);
+    delay(1 * 1000);
 
 
     /** Logfile Initialization */
@@ -467,7 +470,6 @@ void loop() {
      * 3 4 
      * 5 6 7 
      * 8 9
-     * 
     */
     int sec = GetClockMiliTime().toInt();
     if (
