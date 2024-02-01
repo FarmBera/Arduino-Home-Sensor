@@ -19,7 +19,7 @@ DHT dht(DHTPIN, DHTTYPE);
  * Output: RST, DAT, CLK  */
 DS1302 myrtc(9, 8, 7); // 
 
-/** Enable Non-I2C LCD or I2C-LCD */
+/** Enable Non-I2C LCD, I2C-LCD */
 LiquidCrystal_I2C lcd(0x27, 16, 2);
 // LiquidCrystal lcd(A1,A2, 5,4,3,2); 
 
@@ -33,10 +33,8 @@ float dustDensity = 0; // 최종 미세먼지 계산
 
 // Date Variables
 String DATE = "";
-
 // Clock Variables
 String TIME = "";
-
 // Temp/Humidity Variabes
 int dht_temp = 0;
 int dht_hum = 0;
@@ -47,7 +45,7 @@ short init_res_sd = 0;
 
 
 
-/** Get Time & Date from RTC Module */
+/** Get Time & Date from RTC Module (for Syncing program times) */
 void ClockRequest() {
     TIME = myrtc.getTimeStr();
     DATE = myrtc.getDateStr();
@@ -60,6 +58,9 @@ void DisplayClock(short pos=0) {
 
     lcd.setCursor(0, pos);
     lcd.print(Temp_TIME + " " + DATE);
+    // lcd.print(Temp_TIME);
+    // lcd.print(" ");
+    // lcd.print(DATE);
 }
 
 
@@ -85,6 +86,8 @@ void DisplayClockFull() {
 /** Get second time for condition determination */
 String GetClockSecTime() {
     String TIME_SEC = myrtc.getTimeStr();
+    // TIME_SEC = TIME_SEC.substring(6, 8);
+    // Serial.print(TIME_SEC);
     return TIME_SEC.substring(6, 8);
 }
 
@@ -92,12 +95,14 @@ String GetClockSecTime() {
 /** Get second time for condition determination */
 String GetClockMiliTime() {
     String TIME_SEC = myrtc.getTimeStr();
+    // TIME_SEC = TIME_SEC.substring(6, 8);
+    // Serial.print(TIME_SEC);
     return TIME_SEC.substring(7, 8);
 }
 
 
 /** Display Temp/Hum Level */
-void DisplayTemp(short pos=0) {
+void DisplayTemp(short pos = 0) {
     // Load Sensor Value
     dht_temp = dht.readTemperature();
     dht_hum = dht.readHumidity();
@@ -121,7 +126,7 @@ void DisplayTemp(short pos=0) {
 
 
 /** Display Fine-Dust Level */
-void DisplayDust(short pos=1) {
+void DisplayDust(short pos = 1) {
     // short init_pos = 0;
     digitalWrite(V_LED, LOW);
     delayMicroseconds(280);
@@ -130,19 +135,19 @@ void DisplayDust(short pos=1) {
     digitalWrite(V_LED, HIGH);
     delayMicroseconds(9680);
 
-    // convert sensor value to Voltage
-    Voltage = Vo_value * 5.0 / 1024.0; 
+    // 센서 전압값 계산
+    Voltage = Vo_value * 5.0 / 1024.0; // 아날로그 값을 전압값으로 Change
 
-    // Calculate Fine-Dust value
-    // dustDensity = 30 + 5 * ( (new_Voltage - 0.8) * 10 ); // old ver
+    // 미세먼지 계산하기
+    // dustDensity = 30 + 5 * ( (new_Voltage - 0.8) * 10 ); // SOSO
     dustDensity = (Voltage - no_dust) / 0.005; // NEW
 
-    // Display to LCD
+    // LCD에 출력하기
     lcd.setCursor(0, pos);
     lcd.print(Voltage);
 
 
-    /** Dust Level Visualization
+    /** 미세먼지 수치 별 시각화
      * Perfect (0 ~ 15.0)
      * Good (15.0 ~ 30.0)
      * Soso (30.0 ~ 40.0)
@@ -173,33 +178,32 @@ void DisplayDust(short pos=1) {
     else
         lvl = "ERROR";
 
-    // clear previous text
+
     for (short m=7; m<12; m++) {
         lcd.setCursor(m, pos);
         lcd.print(" ");
     }
 
-    // Display the write operation to the SD card has been completed normally
+
     lcd.setCursor(4, pos);
     if (logState == 1) lcd.print("O");
     else if (logState == 0) lcd.print("X");
     else lcd.print("E");
 
-    // display complete time
     lcd.setCursor(5, pos);
     // Serial.println(TIME.substring(3, 5));
     lcd.print(TIME.substring(3, 5));
 
-    // 
+
     lcd.setCursor(7, pos);
-    lcd.print(lvl); // dispaly fine-dust state
-    lcd.setCursor(12, pos);
-    lcd.print(dustDensity); // display fine-dust level (number)
+    lcd.print(lvl);
+    lcd.setCursor(12, pos); // 미세먼지 값
+    lcd.print(dustDensity);
 }
 
 
-/** [DEPRECATED] Write custom message at file */
-/* void SDCardLogging(String CustomMsg) {
+/** Write custom message at file */
+void SDCardLogging(String CustomMsg) {
     myFile = SD.open(FILE_PATH, FILE_WRITE); // Open file with writing mode
 
     if (myFile) { // File opened normally
@@ -223,10 +227,10 @@ void DisplayDust(short pos=1) {
         lcd.print("Writing Msg Failed");
         DisplayClock(1);
     }
-} */
+}
 
 
-/** logging information at SD Card (temperature, humidity, dust-level etc) */
+/** logging at SD Card */
 void SDCardLogging() {
     myFile = SD.open(FILE_PATH, FILE_WRITE); // open file with writing mode
 
@@ -234,33 +238,28 @@ void SDCardLogging() {
 
     if (myFile) { // File opened normally
         // File Open Message
-        // Serial.print("Writing");
-
-        /** below code is for Debugging
-         * Serial.print("/");
-         * Serial.print(".");
-        */
+        Serial.print("Writing");
 
         // Write information
-        // Serial.print("/");
+        Serial.print("/");
         myFile.println(DATE + " " + TIME + " >> " + dht_temp + " " + dht_hum + " " + Voltage + " " + dustDensity);
-        // Serial.print(".");
+        Serial.print(".");
         myFile.close();
-        // Serial.print(".");
+        Serial.print(".");
 
         // Print complete message
-        // Serial.print("/");
+        Serial.print("/");
         lcd.clear();
-        // Serial.print(".");
+        Serial.print(".");
         lcd.setCursor(0, 0);
-        // Serial.print(".");
+        Serial.print(".");
         lcd.print("Writing Done at");
-        // Serial.print(".");
+        Serial.print(".");
         DisplayClock(1);
-        // Serial.print(".");
+        Serial.print(".");
 
         logState = 1;
-        // Serial.println("Done");
+        Serial.println("Done");
     }
     else { // When file not opened
         logState = 0;
@@ -277,23 +276,24 @@ void SDCardLogging() {
 void setup() {
     Serial.begin(9600);
 
-    // lcd.begin(16, 2); // for Non-I2C LCD
+    // lcd.begin(16, 2);
 
-    lcd.init(); // for I2C-LCD
-    lcd.backlight(); // for I2C-LCD
-    // lcd.clear(); // for I2C-LCD
+    lcd.init();
+    lcd.backlight();
+    // lcd.clear();
 
     /** Dust-Module Pin Setup */
     pinMode(V_LED, OUTPUT);
     pinMode(Vo, INPUT);
 
-    /** set RTC (Real Time Clock) module's time */
+    /** Sync Time at RTC (Real Time Clock) 
+     * ONLY FOR FIRST TIME! */
     // myrtc.halt(false); // 동작 모드로 설정
     // myrtc.writeProtect(false); // 시간 변경을 가능하게 설정
     // myrtc.setDOW(MONDAY); // 요일 설정
     // myrtc.setTime(11, 22, 0); // 시간 설정 ( 시간, 분, 초 )
     // myrtc.setDate(6, 1, 2024); // 날짜 설정 ( 일, 월, 년도 )
-    // myrtc.writeProtect(true); // 시간 변경을 불가능하게 설정
+    // myrtc.writeProtect(true); // 시간 변경을 가능하게 설정
 
 
     /** Start SD Card Module Initialization */
