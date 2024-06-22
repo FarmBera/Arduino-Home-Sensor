@@ -10,10 +10,13 @@ String FILE_PATH = "roomtemp.txt";
 File myFile;
 short logState = 0;
 
+#define REG_IN 5
+#define LED_OUT A1
+
 /** Enable Temp/Hum Sensor */
-#define DHTPIN A3
-#define DHTTYPE DHT11
-DHT dht(DHTPIN, DHTTYPE);
+#define DHT_PIN A3
+#define DHT_TYPE DHT11
+DHT dht(DHT_PIN, DHT_TYPE);
 
 /** Enable RTC (Real Tie CLock)
  * Output: RST, DAT, CLK  */
@@ -182,7 +185,7 @@ void DisplayDust(short pos = 1)
   // Display the write operation to the SD card has been completed normally
   lcd.setCursor(4, pos);
   if (logState == 1)
-    lcd.print("O");
+    lcd.print("V");
   else if (logState == 0)
     lcd.print("X");
   else
@@ -279,25 +282,29 @@ void SDCardLogging()
 
 void setup()
 {
-  Serial.begin(9600);
+  // Serial.begin(9600);
 
+  // LCD Initialization
   // lcd.begin(16, 2); // for Non-I2C LCD
-
   lcd.init();      // for I2C-LCD
   lcd.backlight(); // for I2C-LCD
-  // lcd.clear(); // for I2C-LCD
+  lcd.clear();     // for I2C-LCD
+
+  /** DHT Initialize */
+  dht.begin(DHT_PIN);
 
   /** Dust-Module Pin Setup */
   pinMode(V_LED, OUTPUT);
   pinMode(Vo, INPUT);
 
   /** set RTC (Real Time Clock) module's time */
-  // myrtc.halt(false); // 동작 모드로 설정
+  // myrtc.halt(false);         // 동작 모드로 설정
   // myrtc.writeProtect(false); // 시간 변경을 가능하게 설정
-  // myrtc.setDOW(MONDAY); // 요일 설정
-  // myrtc.setTime(11, 22, 0); // 시간 설정 ( 시간, 분, 초 )
-  // myrtc.setDate(6, 1, 2024); // 날짜 설정 ( 일, 월, 년도 )
-  // myrtc.writeProtect(true); // 시간 변경을 불가능하게 설정
+  // myrtc.setDOW(MONDAY);      // 요일 설정
+  // myrtc.setTime(15, 54, 40); // 시간 설정 ( 시간, 분, 초 )
+  // myrtc.setDate(5, 4, 2024); // 날짜 설정 ( 일, 월, 년도 )
+  // myrtc.writeProtect(true);  // 시간 변경을 불가능하게 설정
+  // myrtc.halt(true);
 
   /** Start SD Card Module Initialization */
   logState = 0;
@@ -319,8 +326,7 @@ void setup()
 
     logState = 0;
 
-    while (1)
-      ;
+    // while (1);
   }
   else
   { // When Initialization Success,
@@ -427,6 +433,8 @@ void loop()
     DisplayClockSecond();
   }
   DisplayDust();
+
+  analogWrite(3, map(analogRead(A1), 0, 1024, 0, 255));
 
   delay(900);
 }
