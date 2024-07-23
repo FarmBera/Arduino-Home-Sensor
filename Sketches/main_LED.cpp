@@ -10,6 +10,9 @@ String FILE_PATH = "roomtemp.txt";
 File myFile;
 short logState = 0;
 
+#define REG_IN 5
+#define LED_OUT A1
+
 /** Enable Temp/Hum Sensor */
 #define DHT_PIN A3
 #define DHT_TYPE DHT11
@@ -31,8 +34,11 @@ float Vo_value = 0;
 float Voltage = 0;     // 측정된 전압값
 float dustDensity = 0; // 최종 미세먼지 계산
 
-String DATE = ""; // date var
-String TIME = ""; // clock var
+// Date Variables
+String DATE = "";
+
+// Clock Variables
+String TIME = "";
 
 // Temp/Humidity Variabes
 int dht_temp = 0;
@@ -65,6 +71,15 @@ void DisplayClockSecond(short pos = 0)
   lcd.setCursor(0, pos);
   lcd.print(TIME);
   lcd.print(" ");
+  lcd.print(DATE);
+}
+
+/** Print Full-Screen clock */
+void DisplayClockFull()
+{
+  lcd.setCursor(4, 0);
+  lcd.print(TIME);
+  lcd.setCursor(3, 1);
   lcd.print(DATE);
 }
 
@@ -176,16 +191,44 @@ void DisplayDust(short pos = 1)
   else
     lcd.print("E");
 
-  // display current minute
+  // display complete time
   lcd.setCursor(5, pos);
+  // Serial.println(TIME.substring(3, 5));
   lcd.print(TIME.substring(3, 5));
 
-  // display dust
+  //
   lcd.setCursor(7, pos);
   lcd.print(lvl); // dispaly fine-dust state
   lcd.setCursor(12, pos);
   lcd.print(dustDensity); // display fine-dust level (number)
 }
+
+/** [DEPRECATED] Write custom message at file */
+/* void SDCardLogging(String CustomMsg) {
+    myFile = SD.open(FILE_PATH, FILE_WRITE); // Open file with writing mode
+
+    if (myFile) { // File opened normally
+        // File Open Message
+        Serial.println("Writing Custom Message...");
+
+        myFile.println(DATE + " " + TIME + " Message >> " + CustomMsg);
+        myFile.close();
+
+        // Complete Message
+        lcd.clear();
+        lcd.setCursor(0, 0);
+        lcd.print("Writed CusMsg at");
+        DisplayClock(1);
+    }
+    else { // File not opened
+        Serial.println("Error with Opening File >> " + FILE_PATH);
+
+        lcd.clear();
+        lcd.setCursor(0, 0);
+        lcd.print("Writing Msg Failed");
+        DisplayClock(1);
+    }
+} */
 
 /** logging information at SD Card (temperature, humidity, dust-level etc) */
 void SDCardLogging()
@@ -194,33 +237,46 @@ void SDCardLogging()
 
   String RESULTStr = "";
 
-  if (myFile) // File opened normally
-  {
+  if (myFile)
+  { // File opened normally
+    // File Open Message
+    // Serial.print("Writing");
+
+    /** below code is for Debugging
+     * Serial.print("/");
+     * Serial.print(".");
+     */
+
     // Write information
+    // Serial.print("/");
     myFile.println(DATE + " " + TIME + " >> " + dht_temp + " " + dht_hum + " " + Voltage + " " + dustDensity);
+    // Serial.print(".");
     myFile.close();
+    // Serial.print(".");
 
     // Print complete message
+    // Serial.print("/");
     lcd.clear();
+    // Serial.print(".");
     lcd.setCursor(0, 0);
+    // Serial.print(".");
     lcd.print("Writing Done at");
-    lcd.setCursor(1, 0);
-    lcd.print(FILE_PATH);
-    delay(500);
+    // Serial.print(".");
     DisplayClock(1);
+    // Serial.print(".");
 
     logState = 1;
+    // Serial.println("Done");
   }
   else
   { // When file not opened
     logState = 0;
-    // Serial.println("Error with Opening File >> " + FILE_PATH);
+    Serial.println("Error with Opening File >> " + FILE_PATH);
 
     lcd.clear();
     lcd.setCursor(0, 0);
     lcd.print("Writing Failed");
     DisplayClock(1);
-    delay(2000);
   }
 }
 
@@ -230,9 +286,9 @@ void setup()
 
   // LCD Initialization
   // lcd.begin(16, 2); // for Non-I2C LCD
-  lcd.init();
-  lcd.backlight();
-  lcd.clear();
+  lcd.init();      // for I2C-LCD
+  lcd.backlight(); // for I2C-LCD
+  lcd.clear();     // for I2C-LCD
 
   /** DHT Initialize */
   dht.begin(DHT_PIN);
@@ -242,13 +298,13 @@ void setup()
   pinMode(Vo, INPUT);
 
   /** set RTC (Real Time Clock) module's time */
-  // myrtc.halt(false);          // 동작 모드로 설정
-  // myrtc.writeProtect(false);  // 시간 변경을 가능하게 설정
-  // myrtc.setDOW(TUESDAY);      // 요일 설정
-  // myrtc.setTime(10, 37, 0);   // 시간 설정 ( 시간, 분, 초 )
-  // myrtc.setDate(23, 7, 2024); // 날짜 설정 ( 일, 월, 년도 )
-  // myrtc.writeProtect(true);   // 시간 변경을 불가능하게 설정
-  // // myrtc.halt(true);
+  // myrtc.halt(false);         // 동작 모드로 설정
+  // myrtc.writeProtect(false); // 시간 변경을 가능하게 설정
+  // myrtc.setDOW(MONDAY);      // 요일 설정
+  // myrtc.setTime(15, 54, 40); // 시간 설정 ( 시간, 분, 초 )
+  // myrtc.setDate(5, 4, 2024); // 날짜 설정 ( 일, 월, 년도 )
+  // myrtc.writeProtect(true);  // 시간 변경을 불가능하게 설정
+  // myrtc.halt(true);
 
   /** Start SD Card Module Initialization */
   logState = 0;
@@ -305,11 +361,18 @@ void setup()
   myFile = SD.open(FILE_PATH, FILE_WRITE);
   String RESULTStr = "";
 
-  if (myFile) // file open
+  if (myFile)
   {
+    // File Open Message
+    Serial.print("Writing to >>");
+    Serial.print(FILE_PATH);
+    Serial.println("<<");
+
     // Write Files
-    myFile.println("");
-    myFile.println("");
+    Serial.println("UPDATES");
+
+    myFile.println(" ");
+    myFile.println(" ");
     myFile.print("Logfile at ");
     myFile.print(DATE);
     myFile.print(" ");
@@ -323,8 +386,8 @@ void setup()
     lcd.print("LogfileInit Done");
     DisplayClock(1);
   }
-  else // error
-  {
+  else
+  { // When File not opened normally
     logState = 0;
     Serial.print("ERROR with Opening >> ");
     Serial.println(FILE_PATH);
@@ -370,6 +433,8 @@ void loop()
     DisplayClockSecond();
   }
   DisplayDust();
+
+  analogWrite(3, map(analogRead(A1), 0, 1024, 0, 255));
 
   delay(900);
 }
