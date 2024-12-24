@@ -10,6 +10,22 @@ String FILE_PATH = "roomtemp.txt";
 File myFile;
 short logState = 0;
 
+/** pin list
+ * A3: DHT (temp/hum sensor)
+ *
+ * << RTC >>
+ * 9 - RST
+ * 8 - DAT
+ * 7 - CLK
+ *
+ * << Dust Sensor >>
+ * A0 - input sensor
+ * 6 - IR Sensor output
+ *
+ * << SD pin >>
+ * 4
+ */
+
 /** Enable Temp/Hum Sensor */
 #define DHT_PIN A3
 #define DHT_TYPE DHT11
@@ -40,6 +56,7 @@ int dht_hum = 0;
 String lvl = "";
 
 // is SD Card Prepared?
+short SD_PIN = 4;
 short init_res_sd = 0;
 
 /** Get Time & Date from RTC Module */
@@ -242,12 +259,12 @@ void setup()
   pinMode(Vo, INPUT);
 
   /** set RTC (Real Time Clock) module's time */
-  // myrtc.halt(false);          // 동작 모드로 설정
-  // myrtc.writeProtect(false);  // 시간 변경을 가능하게 설정
-  // myrtc.setDOW(TUESDAY);      // 요일 설정
-  // myrtc.setTime(10, 37, 0);   // 시간 설정 ( 시간, 분, 초 )
-  // myrtc.setDate(23, 7, 2024); // 날짜 설정 ( 일, 월, 년도 )
-  // myrtc.writeProtect(true);   // 시간 변경을 불가능하게 설정
+  // myrtc.halt(false);           // 동작 모드로 설정
+  // myrtc.writeProtect(false);   // 시간 변경을 가능하게 설정
+  // myrtc.setDOW(TUESDAY);       // 요일 설정
+  // myrtc.setTime(15, 2, 0);     // 시간 설정 ( 시간, 분, 초 )
+  // myrtc.setDate(24, 12, 2024); // 날짜 설정 ( 일, 월, 년도 )
+  // myrtc.writeProtect(true);    // 시간 변경을 불가능하게 설정
   // // myrtc.halt(true);
 
   /** Start SD Card Module Initialization */
@@ -258,7 +275,7 @@ void setup()
   lcd.setCursor(0, 1);
   lcd.print("SD card...");
 
-  if (!SD.begin(4))
+  if (!SD.begin(SD_PIN))
   { // Initialize SD Card Module
     Serial.println("Initialization Failed!");
 
